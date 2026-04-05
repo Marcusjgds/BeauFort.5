@@ -157,12 +157,12 @@ def admin_dashboard():
         users  = [dict(u) for u in db.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall()]
         models = [dict(m) for m in db.execute("SELECT * FROM models ORDER BY created_at DESC").fetchall()]
         pages  = [dict(p) for p in db.execute("SELECT * FROM pages ORDER BY sort_order").fetchall()]
-    ctx_data = base_ctx()
-    ctx_data["users"] = users
-    ctx_data["models"] = models
-    ctx_data["admin_pages"] = pages
-    ctx_data["settings"] = s
-    return render_template("admin_dashboard.html", **ctx_data)
+  ctx_data = base_ctx()
+ctx_data["users"] = users
+ctx_data["models"] = models
+ctx_data["admin_pages"] = pages
+ctx_data["settings"] = s
+return render_template("admin_dashboard.html", **ctx_data)
 
 @app.route("/admin/add_user", methods=["POST"])
 def admin_add_user():
