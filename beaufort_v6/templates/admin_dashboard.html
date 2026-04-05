@@ -135,7 +135,7 @@
   <div class="asec anim-up" data-delay="4">
     <div class="asec-hd"><span class="asec-title">📄 Pages</span><button class="btn btn-ac btn-sm" onclick="openPageModal(null)">+ Nouvelle page</button></div>
     <div class="asec-bd">
-      {% if pages %}{% for p in pages %}
+      {% if admin_pages %}{% for p in admin_pages %}
       <div class="pitem" id="p{{ p.id }}">
         <div><div class="pitem-n">{{ p.icon }} {{ p.title }}</div><div class="pitem-s">/page/{{ p.slug }} · {% if p.visible %}Visible{% else %}Cachée{% endif %}</div></div>
         <div style="display:flex;gap:5px">
