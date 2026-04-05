@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Confidentialité — {{ s.site_name }}{% endblock %}
+{% block content %}
+<div style="max-width:720px;margin:0 auto;padding:3rem 2rem;">
+  <h1 style="font-family:'DM Serif Display',serif;font-size:2rem;margin-bottom:.5rem">Politique de confidentialité</h1>
+  <p style="color:var(--tx2);font-size:0.82rem;margin-bottom:2.5rem;padding-bottom:2rem;border-bottom:1px solid var(--ln)">Dernière mise à jour : 2025</p>
+  <div style="color:var(--tx2);line-height:1.8;font-size:0.92rem">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tx);margin:1.5rem 0 .6rem">1. Données collectées</h2>
+    <p>Nous collectons uniquement votre pseudo et mot de passe pour vous permettre de vous connecter à la plateforme.</p>
+    <h2 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tx);margin:1.5rem 0 .6rem">2. Utilisation</h2>
+    <p>Vos données sont utilisées uniquement pour le fonctionnement de la plateforme. Elles ne sont jamais vendues ni partagées.</p>
+    <h2 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tx);margin:1.5rem 0 .6rem">3. Sécurité</h2>
+    <p>Toutes les communications sont chiffrées via HTTPS.</p>
+    <h2 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tx);margin:1.5rem 0 .6rem">4. Contact</h2>
+    <p>Pour toute question, contactez-nous via notre Discord.</p>
+  </div>
+  <a href="/" style="display:inline-flex;align-items:center;gap:6px;color:var(--tx2);font-size:0.85rem;margin-top:2rem">← Retour</a>
+</div>
+{% endblock %}

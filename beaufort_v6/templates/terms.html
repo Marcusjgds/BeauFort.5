@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Conditions — {{ s.site_name }}{% endblock %}
+{% block content %}
+<div style="max-width:720px;margin:0 auto;padding:3rem 2rem;">
+  <h1 style="font-family:'DM Serif Display',serif;font-size:2rem;margin-bottom:.5rem">Conditions d'utilisation</h1>
+  <p style="color:var(--tx2);font-size:0.82rem;margin-bottom:2.5rem;padding-bottom:2rem;border-bottom:1px solid var(--ln)">Dernière mise à jour : 2025</p>
+  <div style="color:var(--tx2);line-height:1.8;font-size:0.92rem">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tx);margin:1.5rem 0 .6rem">1. Utilisation</h2>
+    <p>En utilisant {{ s.site_name }}, vous acceptez ces conditions.</p>
+    <h2 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tx);margin:1.5rem 0 .6rem">2. Contenu</h2>
+    <p>Vous êtes responsable du contenu que vous publiez. Tout contenu illégal sera supprimé.</p>
+    <h2 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tx);margin:1.5rem 0 .6rem">3. Responsabilité</h2>
+    <p>{{ s.site_name }} ne peut être tenu responsable du contenu publié par les utilisateurs.</p>
+  </div>
+  <a href="/" style="display:inline-flex;align-items:center;gap:6px;color:var(--tx2);font-size:0.85rem;margin-top:2rem">← Retour</a>
+</div>
+{% endblock %}

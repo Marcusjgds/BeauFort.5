@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}{{ s.site_name }} — Modèles Roblox{% endblock %}
+{% block extra_css %}
+<style>
+.hero{padding:5rem 2rem 3.5rem;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:700px;height:450px;background:radial-gradient(ellipse,var(--acd) 0%,transparent 65%);pointer-events:none;}
+.htag{display:inline-flex;align-items:center;gap:6px;background:var(--acd);border:1px solid rgba(201,169,110,0.18);border-radius:999px;padding:5px 14px;font-size:0.72rem;font-weight:500;color:var(--ac);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:1.8rem;}
+.hero h1{font-family:'DM Serif Display',serif;font-size:clamp(2.4rem,5vw,4rem);line-height:1.08;letter-spacing:-1.5px;margin-bottom:1.2rem;max-width:720px;margin-left:auto;margin-right:auto;}
+.hero h1 i{font-style:italic;color:var(--ac);}
+.hero p{color:var(--tx2);font-size:1.05rem;max-width:460px;margin:0 auto 2.5rem;font-weight:300;}
+.hcta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.stats{display:flex;justify-content:center;gap:4rem;margin-top:4rem;padding-top:3rem;border-top:1px solid var(--ln);}
+.stat-n{font-family:'DM Serif Display',serif;font-size:2.4rem;color:var(--tx);}
+.stat-l{font-size:0.73rem;color:var(--tx2);margin-top:2px;letter-spacing:0.5px;}
+.wrap{max-width:1200px;margin:0 auto;padding:3rem 2rem;}
+.layout{display:grid;grid-template-columns:265px 1fr;gap:2rem;align-items:start;}
+.ptoggle{display:flex;gap:5px;margin-bottom:.9rem;}
+.ptgl{flex:1;padding:7px;border-radius:8px;border:1px solid var(--ln2);background:var(--s2);color:var(--tx2);font-family:'DM Sans',sans-serif;font-weight:500;font-size:0.79rem;cursor:pointer;transition:all 0.15s;text-align:center;}
+.ptgl.af{border-color:var(--gr);color:var(--gr);background:var(--grd);}
+.ptgl.ap{border-color:var(--am);color:var(--am);background:var(--amd);}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.sec-t{font-family:'DM Serif Display',serif;font-size:1.5rem;letter-spacing:-0.5px;}
+.sec-c{font-size:0.73rem;color:var(--tx2);background:var(--s2);border:1px solid var(--ln);border-radius:999px;padding:3px 10px;}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem;}
+.mc{background:var(--s1);border:1px solid var(--ln);border-radius:14px;overflow:hidden;cursor:pointer;transition:all 0.22s;}
+.mc:hover{border-color:var(--ln2);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.3);}
+.mc-img{width:100%;height:140px;object-fit:cover;display:block;}
+.mc-ph{width:100%;height:140px;background:var(--s2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:2.5rem;gap:6px;color:var(--tx3);}
+.mc-ph span{font-size:0.75rem;color:var(--tx3);}
+.mc-inf{padding:12px;}
+.mc-n{font-weight:600;font-size:0.88rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;}
+.mc-by{font-size:0.71rem;color:var(--tx2);margin-bottom:9px;}
+.mc-ft{display:flex;align-items:center;justify-content:space-between;}
+.empty-state{grid-column:1/-1;text-align:center;padding:5rem 2rem;color:var(--tx2);}
+.empty-state .ei{font-size:3rem;margin-bottom:1rem;display:block;}
+.empty-state p{font-size:0.95rem;line-height:1.7;}
+@media(max-width:860px){.layout{grid-template-columns:1fr}.stats{gap:2rem}.hero{padding:3.5rem 1.5rem 2.5rem}.wrap{padding:2rem 1rem}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="hero">
+  <div class="htag anim-up">🎮 Marketplace Roblox</div>
+  <h1 class="anim-up" data-delay="1">Des modèles<br><i>sans compromis</i></h1>
+  <p class="anim-up" data-delay="2">{{ s.site_desc }}</p>
+  <div class="hcta anim-up" data-delay="3">
+    {% if not logged_in %}
+      <a href="/login" class="btn btn-ac">Rejoindre la plateforme</a>
+      <a href="#models" class="btn btn-ghost">Voir les modèles</a>
+    {% else %}
+      <a href="#models" class="btn btn-ac">Voir les modèles</a>
+    {% endif %}
+  </div>
+  <div class="stats anim-up" data-delay="4">
+    <div class="stat"><div class="stat-n" id="sn">{{ models|length }}</div><div class="stat-l">MODÈLES</div></div>
+    <div class="stat"><div class="stat-n">100%</div><div class="stat-l">GRATUIT</div></div>
+    <div class="stat"><div class="stat-n">∞</div><div class="stat-l">CREATORS</div></div>
+  </div>
+</div>
+<div class="wrap">
+  <div class="layout">
+    <aside>
+      {% if logged_in and (can_upload or is_admin) %}
+      <div class="card anim-up" data-delay="2">
+        <div class="card-hd">Publier un modèle</div>
+        <div class="card-bd">
+          <div class="fg"><label class="lbl">Nom</label><input class="inp" type="text" id="mn" placeholder="Nom du modèle"></div>
+          <div class="fg"><label class="lbl">Description</label><textarea class="inp" id="md" placeholder="Décris ton modèle..."></textarea></div>
+          <div class="fg"><label class="lbl">Catégorie</label>
+            <select class="inp" id="mcat">
+              <option>Buildings</option><option>Vehicles</option><option>Characters</option>
+              <option>Tools</option><option>Nature</option><option>UI</option><option>Scripts</option><option>Other</option>
+            </select>
+          </div>
+          <div class="fg"><label class="lbl">Prix</label>
+            <div class="ptoggle"><button class="ptgl af" id="bf" onclick="sp('free')">✓ Gratuit</button><button class="ptgl" id="bp" onclick="sp('paid')">R$ Payant</button></div>
+            <div id="pw" style="display:none"><input class="inp" type="number" id="mp" placeholder="Montant Robux" min="1"></div>
+          </div>
+          <label class="lbl">Fichier .rbxm / .rbxmx</label>
+          <div class="drop"><input type="file" id="mf" accept=".rbxm,.rbxmx" onchange="sfn('mf','fn1')"><div class="drop-i">📁</div><div class="drop-l">Glisse ou <b>clique</b></div><div class="drop-f" id="fn1"></div></div>
+          <label class="lbl">Miniature (optionnel)</label>
+          <div class="drop"><input type="file" id="tf" accept="image/*" onchange="sfn('tf','fn2')"><div class="drop-i">🖼️</div><div class="drop-l">PNG / JPG</div><div class="drop-f" id="fn2"></div></div>
+          <button class="btn btn-ac" style="width:100%;justify-content:center" onclick="pub()">Publier →</button>
+          <div class="msg" id="um"></div>
+        </div>
+      </div>
+      {% elif logged_in %}
+      <div class="card anim-up" data-delay="2">
+        <div class="card-hd">Accès restreint</div>
+        <div class="card-bd" style="color:var(--tx2);font-size:0.85rem;line-height:1.7">Tu n'es pas encore autorisé à publier. Contacte un admin.</div>
+      </div>
+      {% else %}
+      <div class="card anim-up" data-delay="2">
+        <div class="card-hd">Rejoindre</div>
+        <div class="card-bd" style="text-align:center">
+          <div style="font-size:2.5rem;margin-bottom:1rem">🚀</div>
+          <p style="color:var(--tx2);font-size:0.85rem;margin-bottom:1.2rem;line-height:1.7">Connecte-toi pour publier des modèles.</p>
+          <a href="/login" class="btn btn-ac" style="width:100%;justify-content:center">Se connecter →</a>
+        </div>
+      </div>
+      {% endif %}
+    </aside>
+    <section id="models">
+      <div class="sec-hd anim-up">
+        <div class="sec-t">Modèles</div>
+        <div class="sec-c" id="sc">{{ models|length }} modèle{{ 's' if models|length != 1 }}</div>
+      </div>
+      <div class="mgrid" id="mg">
+        {% if models %}
+          {% for m in models %}
+          <div class="mc anim-up" data-delay="{{ loop.index if loop.index <= 5 else 5 }}" onclick="location.href='/model/{{ m.id }}'">
+            {% if m.thumbnail %}<img src="/uploads/models/{{ m.thumbnail }}" class="mc-img" alt="{{ m.name }}">
+            {% else %}<div class="mc-ph"><span>📦</span><span>Aucune image</span></div>{% endif %}
+            <div class="mc-inf">
+              <div class="mc-n">{{ m.name }}</div>
+              <div class="mc-by">par {{ m.author }} · {{ m.downloads }} téléch.</div>
+              <div class="mc-ft">
+                {% if m.price_type=='free' %}<span class="pill pill-free">Gratuit</span>
+                {% else %}<span class="pill pill-paid">R$ {{ m.price }}</span>{% endif %}
+                <span class="pill pill-cat">{{ m.category }}</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state anim-up">
+            <span class="ei">📦</span>
+            <p>Aucun modèle pour l'instant.<br>🌟 Sois le premier à publier !</p>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let pt='free';
+function sp(t){pt=t;document.getElementById('bf').className='ptgl'+(t==='free'?' af':'');document.getElementById('bp').className='ptgl'+(t==='paid'?' ap':'');document.getElementById('pw').style.display=t==='paid'?'block':'none';}
+async function pub(){
+  const name=document.getElementById('mn').value.trim();
+  const mf=document.getElementById('mf').files[0];
+  if(!name){showMsg('um','Nom requis','err');return;}
+  if(!mf){showMsg('um','Fichier requis','err');return;}
+  const fd=new FormData();
+  fd.append('model_name',name);fd.append('description',document.getElementById('md').value);
+  fd.append('category',document.getElementById('mcat').value);fd.append('price_type',pt);
+  fd.append('price',document.getElementById('mp')?.value||'0');fd.append('model_file',mf);
+  const tf=document.getElementById('tf').files[0];if(tf)fd.append('thumbnail',tf);
+  const r=await fetch('/upload_model',{method:'POST',body:fd});const d=await r.json();
+  if(d.success){showMsg('um','Publié !','ok');toast('Modèle publié !');addCard(d.model);document.getElementById('mn').value='';document.getElementById('md').value='';}
+  else showMsg('um',d.error,'err');
+}
+function addCard(m){
+  const g=document.getElementById('mg');const e=g.querySelector('.empty-state');if(e)e.remove();
+  const price=m.price_type==='free'?`<span class="pill pill-free">Gratuit</span>`:`<span class="pill pill-paid">R$ ${m.price}</span>`;
+  const thumb=m.thumbnail?`<img src="/uploads/models/${m.thumbnail}" class="mc-img">`:`<div class="mc-ph"><span>📦</span><span>Aucune image</span></div>`;
+  const c=document.createElement('div');c.className='mc';c.onclick=()=>location.href='/model/'+m.id;
+  c.innerHTML=`${thumb}<div class="mc-inf"><div class="mc-n">${m.name}</div><div class="mc-by">par ${m.author} · 0 téléch.</div><div class="mc-ft">${price}<span class="pill pill-cat">${m.category}</span></div></div>`;
+  g.prepend(c);
+  const cnt=g.querySelectorAll('.mc').length;
+  document.getElementById('sc').textContent=cnt+' modèle'+(cnt>1?'s':'');
+  document.getElementById('sn').textContent=cnt;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+  <div class="anim-up">
+    <div style="font-size:4rem;margin-bottom:1.5rem">🔒</div>
+    <div style="display:inline-block;background:rgba(248,113,113,0.08);color:var(--rd);border-radius:999px;padding:4px 14px;font-size:0.75rem;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:1.2rem">Fermé</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:2.2rem;letter-spacing:-0.5px;margin-bottom:.75rem">Accès restreint</div>
+    <p style="color:var(--tx2);max-width:400px;line-height:1.7;margin:0 auto">{{ msg }}</p>
+  </div>
+</div>
+{% endblock %}

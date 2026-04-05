@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}{{ m.name }} — {{ s.site_name }}{% endblock %}
+{% block extra_css %}
+<style>
+.wrap{max-width:900px;margin:0 auto;padding:3rem 2rem;}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--tx2);font-size:0.85rem;margin-bottom:2rem;cursor:pointer;transition:color 0.15s;}
+.back:hover{color:var(--ac);}
+.model-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
+.model-img{width:100%;border-radius:14px;object-fit:cover;border:1px solid var(--ln);aspect-ratio:4/3;}
+.model-ph{width:100%;aspect-ratio:4/3;border-radius:14px;border:1px solid var(--ln);background:var(--s2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:4rem;gap:8px;}
+.model-ph span{font-size:0.85rem;color:var(--tx2);}
+.model-title{font-family:'DM Serif Display',serif;font-size:2rem;letter-spacing:-1px;margin-bottom:.5rem;}
+.model-author{color:var(--tx2);font-size:0.88rem;margin-bottom:1rem;}
+.model-desc{color:var(--tx2);font-size:0.9rem;line-height:1.7;margin-bottom:1.5rem;padding:1rem;background:var(--s2);border-radius:10px;border:1px solid var(--ln);}
+.model-meta{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem;}
+.meta-tag{background:var(--s3);border:1px solid var(--ln);border-radius:999px;padding:4px 12px;font-size:0.78rem;color:var(--tx2);}
+.dl-btn{width:100%;padding:14px;background:var(--ac);color:#0f0d08;border:none;border-radius:10px;font-family:'DM Serif Display',serif;font-size:1.1rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-0.3px;}
+.dl-btn:hover{background:var(--ac2);transform:translateY(-1px);box-shadow:0 8px 20px var(--acd);}
+.dl-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.countdown{font-size:3rem;font-family:'DM Serif Display',serif;color:var(--ac);text-align:center;margin:1rem 0;}
+.progress-bar{width:100%;height:4px;background:var(--s3);border-radius:999px;overflow:hidden;margin-top:.5rem;}
+.progress-fill{height:100%;background:var(--ac);border-radius:999px;transition:width 0.3s ease;width:0%;}
+@media(max-width:700px){.model-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="back anim-up" onclick="history.back()">← Retour aux modèles</div>
+  <div class="model-grid">
+    <div class="anim-up" data-delay="1">
+      {% if m.thumbnail %}
+        <img src="/uploads/models/{{ m.thumbnail }}" class="model-img" alt="{{ m.name }}">
+      {% else %}
+        <div class="model-ph"><span>📦</span><span>Aucune image</span></div>
+      {% endif %}
+    </div>
+    <div class="anim-up" data-delay="2">
+      <div class="model-title">{{ m.name }}</div>
+      <div class="model-author">par {{ m.author }} · {{ m.downloads }} téléchargement{{ 's' if m.downloads != 1 }}</div>
+      {% if m.description %}
+      <div class="model-desc">{{ m.description }}</div>
+      {% else %}
+      <div class="model-desc" style="color:var(--tx3);font-style:italic">Aucune description fournie. 📝</div>
+      {% endif %}
+      <div class="model-meta">
+        <span class="meta-tag">📂 {{ m.category }}</span>
+        {% if m.price_type=='free' %}
+          <span class="meta-tag" style="color:var(--gr);border-color:rgba(52,211,153,0.2)">✓ Gratuit</span>
+        {% else %}
+          <span class="meta-tag" style="color:var(--am);border-color:rgba(245,158,11,0.2)">R$ {{ m.price }}</span>
+        {% endif %}
+        <span class="meta-tag">📅 {{ m.created_at[:10] }}</span>
+      </div>
+      {% if m.price_type=='paid' %}
+        <div style="text-align:center;padding:1.5rem;background:var(--s2);border:1px solid var(--ln);border-radius:10px;">
+          <div style="font-size:2rem;margin-bottom:.5rem">💰</div>
+          <p style="color:var(--tx2);font-size:0.88rem">Ce modèle est payant (R$ {{ m.price }}).</p>
+        </div>
+      {% else %}
+        <button class="dl-btn" id="dlbtn" onclick="startDownload({{ m.id }})">
+          ⬇️ Télécharger gratuitement
+        </button>
+        <div class="countdown" id="cdisplay" style="display:none"></div>
+        <div class="progress-bar" id="pbar" style="display:none"><div class="progress-fill" id="pfill"></div></div>
+        <p id="dlmsg" style="text-align:center;color:var(--gr);font-size:0.85rem;margin-top:.5rem;display:none">✓ Téléchargement lancé !</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function startDownload(id){
+  const btn=document.getElementById('dlbtn');
+  const cd=document.getElementById('cdisplay');
+  const pbar=document.getElementById('pbar');
+  const pfill=document.getElementById('pfill');
+  const msg=document.getElementById('dlmsg');
+  btn.disabled=true;
+  btn.textContent='Préparation...';
+  cd.style.display='block';
+  pbar.style.display='block';
+  let n=3;
+  cd.textContent=n;
+  pfill.style.width='0%';
+  const interval=setInterval(()=>{
+    n--;
+    cd.textContent=n;
+    pfill.style.width=((3-n)/3*100)+'%';
+    if(n<=0){
+      clearInterval(interval);
+      cd.textContent='✓';
+      pfill.style.width='100%';
+      msg.style.display='block';
+      setTimeout(()=>{
+        window.location.href='/download/'+id;
+        setTimeout(()=>{ window.location.href='/'; },1500);
+      },500);
+    }
+  },1000);
+}
+</script>
+{% endblock %}

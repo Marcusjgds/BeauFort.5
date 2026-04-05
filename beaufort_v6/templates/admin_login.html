@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="{{ s.theme or 'dark' }}">
+<head><meta charset="UTF-8"><title>Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[data-theme="dark"]{--bg:#080809;--s1:#0f0f11;--s2:#161618;--ln:rgba(255,255,255,0.06);--ln2:rgba(255,255,255,0.11);--tx:#f2f2f4;--tx2:#8888a0;--ac:#c9a96e;--rd:#f87171;}
+[data-theme="light"]{--bg:#f4f4f6;--s1:#fff;--s2:#ededf0;--ln:rgba(0,0,0,0.07);--ln2:rgba(0,0,0,0.13);--tx:#0c0c0e;--tx2:#66667a;--ac:#2563eb;--rd:#dc2626;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.card{background:var(--s1);border:1px solid var(--ln);border-radius:16px;padding:2.5rem;width:100%;max-width:380px;}
+h1{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:.3rem;}
+p{color:var(--tx2);font-size:0.85rem;margin-bottom:2rem;}
+label{display:block;font-size:0.7rem;font-weight:500;color:var(--tx2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.6px;}
+input{width:100%;background:var(--s2);border:1px solid var(--ln2);border-radius:8px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:0.88rem;padding:10px 12px;outline:none;margin-bottom:1rem;}
+input:focus{border-color:var(--ac);}
+.btn{width:100%;padding:11px;background:var(--ac);color:#0f0d08;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;}
+.btn:hover{opacity:0.9;}
+.err{background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:9px 12px;color:var(--rd);font-size:0.8rem;margin-bottom:1rem;}
+.back{display:block;text-align:center;margin-top:1.2rem;color:var(--tx2);font-size:0.82rem;text-decoration:none;}
+</style></head>
+<body>
+<div class="card">
+  <h1>🔐 Admin</h1>
+  <p>{{ s.site_name }}</p>
+  {% if error %}<div class="err">{{ error }}</div>{% endif %}
+  <form method="POST" action="/admin">
+    <label>Mot de passe</label>
+    <input type="password" name="password" placeholder="••••••••" autofocus required>
+    <button type="submit" class="btn">Accéder au dashboard</button>
+  </form>
+  <a href="/" class="back">← Retour au site</a>
+</div>
+</body></html>
