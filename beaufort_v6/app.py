@@ -1,296 +1,300 @@
-{% extends "base.html" %}
-{% block title %}Dashboard Admin — {{ s.site_name }}{% endblock %}
-{% block extra_css %}
-<style>
-.awrap{max-width:1100px;margin:0 auto;padding:2rem;}
-.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;}
-.astat{background:var(--s1);border:1px solid var(--ln);border-radius:12px;padding:1.2rem;}
-.astat-n{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--tx);}
-.astat-l{font-size:0.75rem;color:var(--tx2);margin-top:3px;}
-.asec{background:var(--s1);border:1px solid var(--ln);border-radius:14px;overflow:hidden;margin-bottom:1.5rem;}
-.asec-hd{padding:1rem 1.2rem;border-bottom:1px solid var(--ln);display:flex;align-items:center;justify-content:space-between;}
-.asec-title{font-size:0.88rem;font-weight:600;letter-spacing:-0.2px;}
-.asec-bd{padding:1.2rem;}
-.row2{display:flex;gap:8px;margin-bottom:1rem;}
-.row2 input{flex:1;background:var(--s2);border:1px solid var(--ln2);border-radius:8px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:0.85rem;padding:8px 11px;outline:none;}
-.row2 input:focus{border-color:var(--ac);}
-.uitem,.mitem,.pitem{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:1px solid var(--ln);border-radius:8px;padding:10px 14px;margin-bottom:6px;}
-.uitem-n,.mitem-n,.pitem-n{font-weight:600;font-size:0.86rem;}
-.uitem-s,.mitem-s,.pitem-s{font-size:0.72rem;color:var(--tx2);margin-top:2px;}
-.toggle-row{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--ln);}
-.toggle-row:last-child{border-bottom:none;}
-.tl-n{font-weight:600;font-size:0.88rem;margin-bottom:3px;}
-.tl-s{font-size:0.78rem;color:var(--tx2);margin-bottom:6px;}
-.tgl{position:relative;width:44px;height:24px;flex-shrink:0;margin-top:2px;}
-.tgl input{opacity:0;width:0;height:0;}
-.tgl-s{position:absolute;inset:0;background:var(--s3);border:1px solid var(--ln2);border-radius:999px;cursor:pointer;transition:.2s;}
-.tgl-s::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:var(--tx2);border-radius:50%;transition:.2s;}
-.tgl input:checked+.tgl-s{background:var(--acd);border-color:var(--ac);}
-.tgl input:checked+.tgl-s::before{transform:translateX(20px);background:var(--ac);}
-.inp-sm{width:100%;background:var(--s3);border:1px solid var(--ln2);border-radius:7px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:0.83rem;padding:7px 10px;outline:none;margin-top:5px;}
-.inp-sm:focus{border-color:var(--ac);}
-.theme-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:.5rem;}
-.thbtn{padding:6px 12px;border-radius:8px;border:1px solid var(--ln2);background:var(--s2);color:var(--tx2);font-size:0.78rem;cursor:pointer;transition:all 0.15s;}
-.thbtn:hover,.thbtn.on{border-color:var(--ac);color:var(--ac);background:var(--acd);}
-.page-content-area{width:100%;background:var(--s3);border:1px solid var(--ln2);border-radius:8px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:0.85rem;padding:10px 12px;outline:none;min-height:120px;resize:vertical;margin-top:5px;}
-.page-content-area:focus{border-color:var(--ac);}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem;}
-.modal-overlay.open{display:flex;}
-.modal{background:var(--s1);border:1px solid var(--ln2);border-radius:16px;padding:2rem;width:100%;max-width:560px;}
-.modal-title{font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:1.5rem;}
-.toast-adm{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--s1);color:var(--tx);border:1px solid var(--ln2);border-radius:12px;padding:11px 16px;font-size:0.83rem;font-weight:500;transform:translateY(80px);opacity:0;transition:all .25s;z-index:999;}
-.toast-adm.show{transform:translateY(0);opacity:1;}
-@media(max-width:700px){.agrid{grid-template-columns:1fr 1fr}}
-</style>
-{% endblock %}
-{% block content %}
-<div class="awrap">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;">
-    <div>
-      <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;letter-spacing:-0.5px">Dashboard</div>
-      <div style="color:var(--tx2);font-size:0.85rem;margin-top:2px">{{ s.site_name }}</div>
-    </div>
-    <a href="/" class="btn btn-ghost btn-sm">← Voir le site</a>
-  </div>
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
+import os, sqlite3
+from werkzeug.utils import secure_filename
 
-  <!-- Stats -->
-  <div class="agrid anim-up">
-    <div class="astat"><div class="astat-n">{{ models|length }}</div><div class="astat-l">Modèles</div></div>
-    <div class="astat"><div class="astat-n">{{ users|length }}</div><div class="astat-l">Utilisateurs</div></div>
-    <div class="astat">
-      <div class="astat-n" style="color:{% if s.site_closed=='1' %}var(--rd){% elif s.maintenance=='1' %}var(--am){% else %}var(--gr){% endif %}">
-        {% if s.site_closed=='1' %}Fermé{% elif s.maintenance=='1' %}Maint.{% else %}Live{% endif %}
-      </div>
-      <div class="astat-l">État</div>
-    </div>
-  </div>
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "bf_2025_secret")
 
-  <!-- Paramètres site -->
-  <div class="asec anim-up" data-delay="1">
-    <div class="asec-hd">
-      <span class="asec-title">⚙️ Paramètres</span>
-      <button class="btn btn-ac btn-sm" onclick="saveSettings()">Sauvegarder</button>
-    </div>
-    <div class="asec-bd">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
-        <div><div class="tl-n" style="font-size:0.8rem;margin-bottom:4px">Nom du site</div><input class="inp-sm" id="site_name" value="{{ s.site_name }}"></div>
-        <div><div class="tl-n" style="font-size:0.8rem;margin-bottom:4px">Description</div><input class="inp-sm" id="site_desc" value="{{ s.site_desc }}"></div>
-        <div><div class="tl-n" style="font-size:0.8rem;margin-bottom:4px">URL Discord</div><input class="inp-sm" id="discord_url" value="{{ s.discord_url or '' }}" placeholder="https://discord.gg/..."></div>
-        <div><div class="tl-n" style="font-size:0.8rem;margin-bottom:4px">Label Discord</div><input class="inp-sm" id="discord_label" value="{{ s.discord_label or 'Discord' }}"></div>
-      </div>
-      <div class="toggle-row">
-        <div><div class="tl-n">🔧 Maintenance</div><div class="tl-s">Les visiteurs voient une page maintenance</div><input class="inp-sm" id="maintenance_msg" value="{{ s.maintenance_msg }}"></div>
-        <label class="tgl"><input type="checkbox" id="tog-maint" {% if s.maintenance=='1' %}checked{% endif %}><span class="tgl-s"></span></label>
-      </div>
-      <div class="toggle-row">
-        <div><div class="tl-n">🔒 Site fermé</div><div class="tl-s">Personne ne peut accéder (sauf admin)</div><input class="inp-sm" id="site_closed_msg" value="{{ s.site_closed_msg }}"></div>
-        <label class="tgl"><input type="checkbox" id="tog-close" {% if s.site_closed=='1' %}checked{% endif %}><span class="tgl-s"></span></label>
-      </div>
-      <div style="margin-top:1rem">
-        <div class="tl-n" style="font-size:0.8rem;margin-bottom:8px">🎨 Thème global</div>
-        <div class="theme-row" id="theme-btns">
-          {% for t,lbl in [('dark','🌙 Sombre'),('light','☀️ Clair'),('noel','🎄 Noël'),('halloween','🎃 Halloween'),('paques','🐣 Pâques')] %}
-          <button class="thbtn {% if s.theme==t %}on{% endif %}" onclick="setGlobalTheme('{{ t }}')">{{ lbl }}</button>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  </div>
+BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads", "models")
+LOGO_DIR   = os.path.join(BASE_DIR, "uploads", "logos")
+DB_PATH    = os.path.join(BASE_DIR, "database.db")
 
-  <!-- Logo -->
-  <div class="asec anim-up" data-delay="2">
-    <div class="asec-hd"><span class="asec-title">🖼️ Logo</span></div>
-    <div class="asec-bd" style="display:flex;align-items:center;gap:1rem;">
-      {% if s.site_logo %}<img src="/uploads/logos/{{ s.site_logo }}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;border:1px solid var(--ln2);">
-      {% else %}<img src="/static/logo.png" style="width:56px;height:56px;border-radius:10px;object-fit:cover;border:1px solid var(--ln2);">{% endif %}
-      <div><input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadLogo()">
-      <button class="btn btn-ac btn-sm" onclick="document.getElementById('logo-file').click()">Changer le logo</button>
-      <div style="font-size:0.75rem;color:var(--tx2);margin-top:4px">PNG, JPG recommandé</div></div>
-    </div>
-  </div>
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(LOGO_DIR, exist_ok=True)
 
-  <!-- Utilisateurs -->
-  <div class="asec anim-up" data-delay="3">
-    <div class="asec-hd"><span class="asec-title">👥 Utilisateurs</span><span style="font-size:0.78rem;color:var(--tx2)">{{ users|length }}</span></div>
-    <div class="asec-bd">
-      <div class="row2">
-        <input type="text" id="nu" placeholder="Pseudo...">
-        <input type="text" id="np" placeholder="Mot de passe...">
-        <button class="btn btn-ac" onclick="addUser()">+ Ajouter</button>
-      </div>
-      <div id="ulist">
-        {% if users %}{% for u in users %}
-        <div class="uitem" id="u{{ u.id }}">
-          <div><div class="uitem-n">{{ u.username }}</div><div class="uitem-s">Ajouté le {{ u.created_at[:10] }}</div></div>
-          <button class="btn btn-danger btn-sm" onclick="delUser({{ u.id }},'{{ u.username }}')">Retirer</button>
-        </div>
-        {% endfor %}{% else %}
-        <div style="text-align:center;padding:1.5rem;color:var(--tx2);font-size:0.85rem" id="uempty">🙈 Aucun utilisateur</div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+ALLOWED_MODELS = {"rbxm", "rbxmx"}
+ALLOWED_IMAGES = {"png", "jpg", "jpeg", "gif", "webp", "svg"}
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin1234")
 
-  <!-- Pages -->
-  <div class="asec anim-up" data-delay="4">
-    <div class="asec-hd"><span class="asec-title">📄 Pages</span><button class="btn btn-ac btn-sm" onclick="openPageModal(null)">+ Nouvelle page</button></div>
-    <div class="asec-bd">
-      {% if admin_pages %}{% for p in admin_pages %}
-      <div class="pitem" id="p{{ p.id }}">
-        <div><div class="pitem-n">{{ p.icon }} {{ p.title }}</div><div class="pitem-s">/page/{{ p.slug }} · {% if p.visible %}Visible{% else %}Cachée{% endif %}</div></div>
-        <div style="display:flex;gap:5px">
-          <button class="btn btn-ghost btn-sm" onclick="openPageModal({{ p|tojson }})">Éditer</button>
-          <button class="btn btn-danger btn-sm" onclick="delPage({{ p.id }},'{{ p.title }}')">✕</button>
-        </div>
-      </div>
-      {% endfor %}{% else %}
-      <div style="text-align:center;padding:1.5rem;color:var(--tx2);font-size:0.85rem">📝 Aucune page</div>
-      {% endif %}
-    </div>
-  </div>
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-  <!-- Modèles -->
-  <div class="asec anim-up" data-delay="5">
-    <div class="asec-hd"><span class="asec-title">📦 Modèles</span><span style="font-size:0.78rem;color:var(--tx2)">{{ models|length }}</span></div>
-    <div class="asec-bd">
-      {% if models %}{% for m in models %}
-      <div class="mitem" id="m{{ m.id }}">
-        <div><div class="mitem-n">{{ m.name }} <span class="pill {% if m.price_type=='free' %}pill-free{% else %}pill-paid{% endif %}">{% if m.price_type=='free' %}Gratuit{% else %}R$ {{ m.price }}{% endif %}</span></div>
-        <div class="mitem-s">par {{ m.author }} · {{ m.category }} · {{ m.downloads }} téléch. · {{ m.created_at[:10] }}</div></div>
-        <button class="btn btn-danger btn-sm" onclick="delModel({{ m.id }},'{{ m.name }}')">Supprimer</button>
-      </div>
-      {% endfor %}{% else %}
-      <div style="text-align:center;padding:1.5rem;color:var(--tx2);font-size:0.85rem">📦 Aucun modèle</div>
-      {% endif %}
-    </div>
-  </div>
-</div>
+def init_db():
+    with get_db() as db:
+        db.execute("""CREATE TABLE IF NOT EXISTS models (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL, description TEXT,
+            price_type TEXT DEFAULT 'free', price INTEGER DEFAULT 0,
+            category TEXT DEFAULT 'Other', file TEXT NOT NULL,
+            thumbnail TEXT DEFAULT '', author TEXT NOT NULL,
+            downloads INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+        db.execute("""CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            can_upload INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+        db.execute("""CREATE TABLE IF NOT EXISTS pages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            slug TEXT NOT NULL UNIQUE,
+            title TEXT NOT NULL,
+            icon TEXT DEFAULT '📄',
+            content TEXT DEFAULT '',
+            visible INTEGER DEFAULT 1,
+            sort_order INTEGER DEFAULT 0)""")
+        db.execute("""CREATE TABLE IF NOT EXISTS site_settings (
+            key TEXT PRIMARY KEY, value TEXT)""")
+        for k,v in [("maintenance","0"),("site_closed","0"),
+                    ("maintenance_msg","Site en maintenance, revenez bientot !"),
+                    ("site_closed_msg","Le site est ferme."),
+                    ("site_logo",""),("theme","dark"),
+                    ("site_name","Boutique de BeauFort"),
+                    ("site_desc","La marketplace de modeles Roblox"),
+                    ("discord_url",""),("discord_label","Discord")]:
+            db.execute("INSERT OR IGNORE INTO site_settings (key,value) VALUES (?,?)",(k,v))
+        for slug,title,icon,content,order in [
+            ("histoire","Histoire","📖","<h2>Notre histoire</h2><p>Bienvenue dans l'histoire de Boutique de BeauFort...</p>",1),
+            ("recrutement","Recrutement","🎯","<h2>Rejoins l'equipe</h2><p>Nous cherchons des personnes motivees...</p>",2),
+            ("apropos","A propos","ℹ️","<h2>A propos</h2><p>Boutique de BeauFort est une marketplace Roblox...</p>",3)]:
+            db.execute("INSERT OR IGNORE INTO pages (slug,title,icon,content,visible,sort_order) VALUES (?,?,?,?,1,?)",(slug,title,icon,content,order))
+        db.commit()
 
-<!-- Page Modal -->
-<div class="modal-overlay" id="page-modal">
-  <div class="modal">
-    <div class="modal-title" id="modal-title">Nouvelle page</div>
-    <input type="hidden" id="pid">
-    <div class="fg" id="slug-row"><div class="tl-n" style="font-size:0.75rem;color:var(--tx2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Slug (URL)</div><input class="inp-sm" id="pslug" placeholder="mon-url-de-page"></div>
-    <div style="display:grid;grid-template-columns:1fr 80px;gap:8px;margin-top:.8rem">
-      <div><div class="tl-n" style="font-size:0.75rem;color:var(--tx2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Titre</div><input class="inp-sm" id="ptitle" placeholder="Titre de la page"></div>
-      <div><div class="tl-n" style="font-size:0.75rem;color:var(--tx2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Icône</div><input class="inp-sm" id="picon" placeholder="📄"></div>
-    </div>
-    <div style="margin-top:.8rem"><div class="tl-n" style="font-size:0.75rem;color:var(--tx2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Contenu HTML</div>
-    <textarea class="page-content-area" id="pcontent" placeholder="<h2>Titre</h2><p>Ton contenu ici...</p>"></textarea></div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:.8rem">
-      <label class="tgl"><input type="checkbox" id="pvisible" checked><span class="tgl-s"></span></label>
-      <span style="font-size:0.83rem;color:var(--tx2)">Visible dans la navigation</span>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:1.5rem">
-      <button class="btn btn-ac" style="flex:1" onclick="savePage()">Sauvegarder</button>
-      <button class="btn btn-ghost" onclick="closePageModal()">Annuler</button>
-    </div>
-  </div>
-</div>
+init_db()
 
-<div class="toast-adm" id="tadm"></div>
-{% endblock %}
-{% block scripts %}
-<script>
-function tadm(txt,ok=true){const t=document.getElementById('tadm');t.textContent=txt;t.style.borderColor=ok?'rgba(52,211,153,.3)':'rgba(248,113,113,.3)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+def get_setting(key, default=""):
+    with get_db() as db:
+        row = db.execute("SELECT value FROM site_settings WHERE key=?", (key,)).fetchone()
+        return row["value"] if row else default
 
-async function saveSettings(){
-  const data={
-    maintenance:document.getElementById('tog-maint').checked?'1':'0',
-    site_closed:document.getElementById('tog-close').checked?'1':'0',
-    maintenance_msg:document.getElementById('maintenance_msg').value,
-    site_closed_msg:document.getElementById('site_closed_msg').value,
-    site_name:document.getElementById('site_name').value,
-    site_desc:document.getElementById('site_desc').value,
-    discord_url:document.getElementById('discord_url').value,
-    discord_label:document.getElementById('discord_label').value,
-  };
-  const r=await fetch('/admin/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-  const d=await r.json();
-  d.success?tadm('✓ Paramètres sauvegardés !'):tadm('Erreur',false);
-}
+def set_setting(key, value):
+    with get_db() as db:
+        db.execute("INSERT OR REPLACE INTO site_settings (key,value) VALUES (?,?)", (key,value))
+        db.commit()
 
-function setGlobalTheme(t){
-  document.querySelectorAll('.thbtn').forEach(b=>b.classList.remove('on'));
-  event.target.classList.add('on');
-  fetch('/admin/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme:t})});
-  setTheme(t);
-  tadm('✓ Thème appliqué pour tous !');
-}
+def get_all_settings():
+    with get_db() as db:
+        return {r["key"]:r["value"] for r in db.execute("SELECT key,value FROM site_settings").fetchall()}
 
-async function addUser(){
-  const u=document.getElementById('nu').value.trim();const p=document.getElementById('np').value.trim();
-  if(!u||!p){tadm('Pseudo et mot de passe requis',false);return;}
-  const fd=new FormData();fd.append('username',u);fd.append('password',p);
-  const r=await fetch('/admin/add_user',{method:'POST',body:fd});const d=await r.json();
-  if(d.success){
-    document.getElementById('nu').value='';document.getElementById('np').value='';
-    const empty=document.getElementById('uempty');if(empty)empty.remove();
-    const el=document.createElement('div');el.className='uitem';el.id='u'+d.id;
-    el.innerHTML=`<div><div class="uitem-n">${u}</div><div class="uitem-s">Ajouté maintenant</div></div><button class="btn btn-danger btn-sm" onclick="delUser(${d.id},'${u}')">Retirer</button>`;
-    document.getElementById('ulist').prepend(el);tadm('✓ '+u+' ajouté !');
-  }else tadm(d.error||'Erreur',false);
-}
+def get_visible_pages():
+    with get_db() as db:
+        return [dict(p) for p in db.execute("SELECT * FROM pages WHERE visible=1 ORDER BY sort_order").fetchall()]
 
-async function delUser(id,name){
-  if(!confirm('Supprimer '+name+' ?'))return;
-  const r=await fetch('/admin/remove_user/'+id,{method:'POST'});const d=await r.json();
-  if(d.success){document.getElementById('u'+id)?.remove();tadm('✓ '+name+' supprimé');}
-}
+def allowed_model(fn): return "." in fn and fn.rsplit(".",1)[1].lower() in ALLOWED_MODELS
+def allowed_image(fn): return "." in fn and fn.rsplit(".",1)[1].lower() in ALLOWED_IMAGES
 
-async function delModel(id,name){
-  if(!confirm('Supprimer "'+name+'" ?'))return;
-  const r=await fetch('/admin/delete_model/'+id,{method:'POST'});const d=await r.json();
-  if(d.success){document.getElementById('m'+id)?.remove();tadm('✓ Modèle supprimé');}
-}
+@app.before_request
+def check_status():
+    exempt = ["/admin","/static","/uploads","/login","/logout","/api"]
+    if any(request.path.startswith(e) for e in exempt): return None
+    if get_setting("site_closed")=="1" and not session.get("is_admin"):
+        return render_template("closed.html", msg=get_setting("site_closed_msg"), s=get_all_settings()), 503
+    if get_setting("maintenance")=="1" and not session.get("is_admin"):
+        return render_template("maintenance.html", msg=get_setting("maintenance_msg"), s=get_all_settings()), 503
 
-async function uploadLogo(){
-  const f=document.getElementById('logo-file').files[0];if(!f)return;
-  const fd=new FormData();fd.append('logo',f);
-  const r=await fetch('/upload_logo',{method:'POST',body:fd});const d=await r.json();
-  if(d.success){tadm('✓ Logo mis à jour !');setTimeout(()=>location.reload(),800);}
-}
+def ctx():
+    return dict(logged_in="user_id" in session, username=session.get("username",""),
+                is_admin=session.get("is_admin",False), can_upload=session.get("can_upload",False),
+                s=get_all_settings(), pages=get_visible_pages())
 
-function openPageModal(page){
-  const modal=document.getElementById('page-modal');
-  const isNew=!page;
-  document.getElementById('modal-title').textContent=isNew?'Nouvelle page':'Éditer la page';
-  document.getElementById('pid').value=page?page.id:'';
-  document.getElementById('pslug').value=page?page.slug:'';
-  document.getElementById('ptitle').value=page?page.title:'';
-  document.getElementById('picon').value=page?page.icon:'📄';
-  document.getElementById('pcontent').value=page?page.content:'';
-  document.getElementById('pvisible').checked=page?(page.visible==1):true;
-  document.getElementById('slug-row').style.display=isNew?'block':'none';
-  modal.classList.add('open');
-}
-function closePageModal(){document.getElementById('page-modal').classList.remove('open');}
+@app.route("/")
+def index():
+    with get_db() as db:
+        models = [dict(m) for m in db.execute("SELECT * FROM models ORDER BY created_at DESC").fetchall()]
+    return render_template("index.html", models=models, **ctx())
 
-async function savePage(){
-  const data={
-    id:document.getElementById('pid').value||null,
-    slug:document.getElementById('pslug').value.trim(),
-    title:document.getElementById('ptitle').value.trim(),
-    icon:document.getElementById('picon').value.trim()||'📄',
-    content:document.getElementById('pcontent').value,
-    visible:document.getElementById('pvisible').checked?1:0,
-    sort_order:0
-  };
-  if(!data.title){tadm('Titre requis',false);return;}
-  const r=await fetch('/admin/save_page',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-  const d=await r.json();
-  if(d.success){closePageModal();tadm('✓ Page sauvegardée !');setTimeout(()=>location.reload(),800);}
-  else tadm(d.error||'Erreur',false);
-}
+@app.route("/model/<int:mid>")
+def model_page(mid):
+    with get_db() as db:
+        m = db.execute("SELECT * FROM models WHERE id=?",(mid,)).fetchone()
+        if not m: return redirect(url_for("index"))
+    return render_template("model_detail.html", m=dict(m), **ctx())
 
-async function delPage(id,name){
-  if(!confirm('Supprimer la page "'+name+'" ?'))return;
-  const r=await fetch('/admin/delete_page/'+id,{method:'POST'});const d=await r.json();
-  if(d.success){document.getElementById('p'+id)?.remove();tadm('✓ Page supprimée');}
-}
+@app.route("/page/<slug>")
+def custom_page(slug):
+    with get_db() as db:
+        page = db.execute("SELECT * FROM pages WHERE slug=? AND visible=1",(slug,)).fetchone()
+        if not page: return redirect(url_for("index"))
+    return render_template("custom_page.html", page=dict(page), **ctx())
 
-// Close modal on overlay click
-document.getElementById('page-modal').addEventListener('click',function(e){if(e.target===this)closePageModal();});
-</script>
-{% endblock %}
+@app.route("/login", methods=["GET","POST"])
+def login():
+    s = get_all_settings(); pg = get_visible_pages()
+    if request.method=="GET":
+        return render_template("login.html", error=None, s=s, pages=pg)
+    username = request.form.get("username","").strip()
+    password = request.form.get("password","").strip()
+    if not username or not password:
+        return render_template("login.html", error="Pseudo et mot de passe requis.", s=s, pages=pg)
+    with get_db() as db:
+        user = db.execute("SELECT * FROM users WHERE LOWER(username)=LOWER(?) AND password=?",(username,password)).fetchone()
+    if not user:
+        return render_template("login.html", error="Identifiants incorrects.", s=s, pages=pg)
+    session.update({"user_id":user["id"],"username":user["username"],"is_admin":False,"can_upload":bool(user["can_upload"])})
+    return redirect(url_for("index"))
+
+@app.route("/logout")
+def logout():
+    session.clear(); return redirect(url_for("index"))
+
+@app.route("/admin", methods=["GET","POST"])
+def admin():
+    if request.method=="POST":
+        if request.form.get("password")==ADMIN_PASSWORD:
+            session.update({"is_admin":True,"can_upload":True,"username":"Admin"})
+            return redirect(url_for("admin_dashboard"))
+        return render_template("admin_login.html", error="Mot de passe incorrect.", s=get_all_settings())
+    if session.get("is_admin"): return redirect(url_for("admin_dashboard"))
+    return render_template("admin_login.html", error=None, s=get_all_settings())
+
+@app.route("/admin/dashboard")
+def admin_dashboard():
+    if not session.get("is_admin"): return redirect(url_for("admin"))
+    with get_db() as db:
+        users  = [dict(u) for u in db.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall()]
+        models = [dict(m) for m in db.execute("SELECT * FROM models ORDER BY created_at DESC").fetchall()]
+        pages  = [dict(p) for p in db.execute("SELECT * FROM pages ORDER BY sort_order").fetchall()]
+    ctx_data = base_ctx()
+    ctx_data["users"] = users
+    ctx_data["models"] = models
+    ctx_data["admin_pages"] = pages
+    ctx_data["settings"] = s
+    return render_template("admin_dashboard.html", **ctx_data)
+
+@app.route("/admin/add_user", methods=["POST"])
+def admin_add_user():
+    if not session.get("is_admin"): return jsonify({"success":False})
+    u = request.form.get("username","").strip(); p = request.form.get("password","").strip()
+    if not u or not p: return jsonify({"success":False,"error":"Pseudo et mot de passe requis"})
+    try:
+        with get_db() as db:
+            db.execute("INSERT INTO users (username,password,can_upload) VALUES (?,?,1)",(u,p))
+            db.commit()
+            uid = db.execute("SELECT id FROM users WHERE username=?",(u,)).fetchone()["id"]
+        return jsonify({"success":True,"username":u,"id":uid})
+    except: return jsonify({"success":False,"error":"Utilisateur deja existant"})
+
+@app.route("/admin/remove_user/<int:uid>", methods=["POST"])
+def admin_remove_user(uid):
+    if not session.get("is_admin"): return jsonify({"success":False})
+    with get_db() as db:
+        db.execute("DELETE FROM users WHERE id=?",(uid,)); db.commit()
+    return jsonify({"success":True})
+
+@app.route("/admin/delete_model/<int:mid>", methods=["POST"])
+def admin_delete_model(mid):
+    if not session.get("is_admin"): return jsonify({"success":False})
+    with get_db() as db:
+        m = db.execute("SELECT * FROM models WHERE id=?",(mid,)).fetchone()
+        if m:
+            try: os.remove(os.path.join(UPLOAD_DIR, m["file"]))
+            except: pass
+            if m["thumbnail"]:
+                try: os.remove(os.path.join(UPLOAD_DIR, m["thumbnail"]))
+                except: pass
+        db.execute("DELETE FROM models WHERE id=?",(mid,)); db.commit()
+    return jsonify({"success":True})
+
+@app.route("/admin/settings", methods=["POST"])
+def admin_settings():
+    if not session.get("is_admin"): return jsonify({"success":False})
+    data = request.get_json() or {}
+    for key in ["maintenance","site_closed","maintenance_msg","site_closed_msg","theme","site_name","site_desc","discord_url","discord_label"]:
+        if key in data: set_setting(key, str(data[key]))
+    return jsonify({"success":True})
+
+@app.route("/admin/save_page", methods=["POST"])
+def admin_save_page():
+    if not session.get("is_admin"): return jsonify({"success":False})
+    data = request.get_json() or {}
+    pid = data.get("id")
+    if pid:
+        with get_db() as db:
+            db.execute("UPDATE pages SET title=?,icon=?,content=?,visible=?,sort_order=? WHERE id=?",
+                (data.get("title",""),data.get("icon","📄"),data.get("content",""),int(data.get("visible",1)),int(data.get("sort_order",0)),pid))
+            db.commit()
+        return jsonify({"success":True,"id":pid})
+    slug = data.get("slug","").strip().replace(" ","-").lower()
+    if not slug: return jsonify({"success":False,"error":"Slug requis"})
+    try:
+        with get_db() as db:
+            db.execute("INSERT INTO pages (slug,title,icon,content,visible,sort_order) VALUES (?,?,?,?,1,0)",
+                (slug,data.get("title",""),data.get("icon","📄"),data.get("content","")))
+            db.commit()
+            pid = db.execute("SELECT id FROM pages WHERE slug=?",(slug,)).fetchone()["id"]
+        return jsonify({"success":True,"id":pid})
+    except: return jsonify({"success":False,"error":"Slug deja utilise"})
+
+@app.route("/admin/delete_page/<int:pid>", methods=["POST"])
+def admin_delete_page(pid):
+    if not session.get("is_admin"): return jsonify({"success":False})
+    with get_db() as db:
+        db.execute("DELETE FROM pages WHERE id=?",(pid,)); db.commit()
+    return jsonify({"success":True})
+
+@app.route("/upload_model", methods=["POST"])
+def upload_model():
+    if not ("user_id" in session or session.get("is_admin")):
+        return jsonify({"success":False,"error":"Non connecte"})
+    if not session.get("can_upload") and not session.get("is_admin"):
+        return jsonify({"success":False,"error":"Non autorise"})
+    name = request.form.get("model_name","").strip()
+    if not name: return jsonify({"success":False,"error":"Nom requis"})
+    mf = request.files.get("model_file")
+    if not mf or not allowed_model(mf.filename): return jsonify({"success":False,"error":"Fichier .rbxm/.rbxmx requis"})
+    mfn = secure_filename(f"{session.get('user_id','admin')}_{mf.filename}")
+    mf.save(os.path.join(UPLOAD_DIR, mfn))
+    tp = ""
+    tf = request.files.get("thumbnail")
+    if tf and allowed_image(tf.filename):
+        tfn = secure_filename(f"th_{session.get('user_id','admin')}_{tf.filename}")
+        tf.save(os.path.join(UPLOAD_DIR, tfn)); tp = tfn
+    rp = 0
+    price_type = request.form.get("price_type","free")
+    if price_type=="paid":
+        try: rp = int(request.form.get("price","0"))
+        except: pass
+    with get_db() as db:
+        cur = db.execute("INSERT INTO models (name,description,price_type,price,category,file,thumbnail,author) VALUES (?,?,?,?,?,?,?,?)",
+            (name,request.form.get("description",""),price_type,rp,request.form.get("category","Other"),mfn,tp,session.get("username","Admin")))
+        db.commit()
+        model = dict(db.execute("SELECT * FROM models WHERE id=?",(cur.lastrowid,)).fetchone())
+    return jsonify({"success":True,"model":model})
+
+@app.route("/upload_logo", methods=["POST"])
+def upload_logo():
+    if not session.get("is_admin"): return jsonify({"success":False})
+    logo = request.files.get("logo")
+    if not logo or not allowed_image(logo.filename): return jsonify({"success":False})
+    fn = secure_filename(f"logo_{logo.filename}")
+    logo.save(os.path.join(LOGO_DIR, fn)); set_setting("site_logo", fn)
+    return jsonify({"success":True,"logo_path":fn})
+
+@app.route("/api/theme")
+def api_theme(): return jsonify({"theme":get_setting("theme","dark")})
+
+@app.route("/uploads/models/<path:filename>")
+def serve_model(filename): return send_from_directory(UPLOAD_DIR, filename)
+
+@app.route("/uploads/logos/<path:filename>")
+def serve_logo(filename): return send_from_directory(LOGO_DIR, filename)
+
+@app.route("/download/<int:mid>")
+def download_model(mid):
+    with get_db() as db:
+        m = db.execute("SELECT * FROM models WHERE id=?",(mid,)).fetchone()
+        if not m: return "Introuvable",404
+        db.execute("UPDATE models SET downloads=downloads+1 WHERE id=?",(mid,)); db.commit()
+    return send_from_directory(UPLOAD_DIR, m["file"], as_attachment=True)
+
+@app.route("/privacy")
+def privacy(): return render_template("privacy.html", s=get_all_settings(), pages=get_visible_pages())
+
+@app.route("/terms")
+def terms(): return render_template("terms.html", s=get_all_settings(), pages=get_visible_pages())
+
+if __name__ == "__main__":
+    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT",5000)))
