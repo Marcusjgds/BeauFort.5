@@ -157,8 +157,7 @@ def admin_dashboard():
         users  = [dict(u) for u in db.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall()]
         models = [dict(m) for m in db.execute("SELECT * FROM models ORDER BY created_at DESC").fetchall()]
         pages  = [dict(p) for p in db.execute("SELECT * FROM pages ORDER BY sort_order").fetchall()]
-    return render_template("admin_dashboard.html", users=users, models=models, pages=pages, **ctx())
-
+    return render_template("admin_dashboard.html", users=users, models=models, admin_pages=pages, **ctx())
 @app.route("/admin/add_user", methods=["POST"])
 def admin_add_user():
     if not session.get("is_admin"): return jsonify({"success":False})
